@@ -7,6 +7,7 @@ import (
     "image/png"
     "os"
     "io"
+    "log"
 )
 
 const permission = 0644
@@ -14,10 +15,16 @@ const permission = 0644
 func main() {
 	fmt.Println("Hello qr code")
 
-    file, _ := os.Create("qrcode.png")
+    file, err := os.Create("qrcode.png")
+    if err != nil {
+        log.Fatal(err)
+    }
     defer file.Close()
 
-    GenerateQRCode(file, "555-2368")
+    err = GenerateQRCode(file, "555-2368")
+    if err != nil {
+        log.Fatal(err)
+    }
 }
 
 func GenerateQRCode(w io.Writer, code string) error {

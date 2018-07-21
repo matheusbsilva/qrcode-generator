@@ -3,10 +3,10 @@ package main
 
 import (
     "fmt"
-    "io/ioutil"
     "image"
     "image/png"
-    "bytes"
+    "os"
+    "io"
 )
 
 const permission = 0644
@@ -14,14 +14,13 @@ const permission = 0644
 func main() {
 	fmt.Println("Hello qr code")
 
-    qrcode := GenerateQRCode("555-2368")
-    ioutil.WriteFile("qrcode.png", qrcode, permission)
+    file, _ := os.Create("qrcode.png")
+    defer file.Close()
+
+    GenerateQRCode(file, "555-2368")
 }
 
-func GenerateQRCode(code string) []byte {
+func GenerateQRCode(w io.Writer, code string) {
     img := image.NewNRGBA(image.Rect(0, 0, 21, 21))
-    buf := new(bytes.Buffer)
-    _ = png.Encode(buf, img)
-
-    return buf.Bytes()
+    _ = png.Encode(w, img)
 }

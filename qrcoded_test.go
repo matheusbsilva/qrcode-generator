@@ -15,7 +15,7 @@ func (e *ErrorWriter) Write(b []byte) (int, error) {
 
 func TestGenerateQRCodePropagatesErrors(t *testing.T) {
     w := new(ErrorWriter)
-    err := GenerateQRCode(w, "555-32432")
+    err := GenerateQRCode(w, "555-32432", Version(1))
 
     if err == nil || err.Error() != "Expected error" {
         t.Errorf("Error not propagated correctly, go %v", err)
@@ -24,7 +24,7 @@ func TestGenerateQRCodePropagatesErrors(t *testing.T) {
 
 func TestGenerateQRCodeGeneratesPNG(t *testing.T) {
     buffer := new(bytes.Buffer)
-    GenerateQRCode(buffer, "555-0940")
+    GenerateQRCode(buffer, "555-0940", Version(1))
 
     if buffer.Len() == 0 {
         t.Errorf("No QRCode generated")
@@ -34,5 +34,30 @@ func TestGenerateQRCodeGeneratesPNG(t *testing.T) {
 
     if err != nil {
         t.Errorf("Generated QRCode is not a PNG: %s", err)
+    }
+}
+
+func TestVersionDeterminesSize(t *testing.T) {
+    table := []struct {
+        version int
+        expected int
+    }{
+        {1, 21},
+        {2, 25},
+        {6, 41},
+        {7, 45},
+        {14, 73},
+        {40, 177},
+    }
+
+    for _, test := range table {
+        buffer := new(bytes.Buffer)
+        GenerateQRCode(buffer, "555-23113", Version(test.version))
+
+        img, _ := png.Decode(buffer)
+        if width := img.Bounds().Dx(); width != test.expected {
+            t.Errorf("Version %2d, expected %3d but got %3d",
+                     test.version, test.expected, width)
+        }
     }
 }
